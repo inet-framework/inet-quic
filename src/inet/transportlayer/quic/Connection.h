@@ -36,6 +36,11 @@
 #include "packet/ConnectionId.h"
 #include "TransportParameters.h"
 
+extern "C" {
+#include "picotls.h"
+#include "picotls/openssl.h"
+}
+
 namespace inet {
 namespace quic {
 
@@ -241,6 +246,8 @@ class Connection
     Statistics *stats;
 
     Path *path;
+
+    ptls_t *tls;
 
     int lastMaxQuicPacketSize;
     simsignal_t usedMaxQuicPacketSizeStat;
