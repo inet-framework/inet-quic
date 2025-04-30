@@ -116,7 +116,7 @@ QuicPacket *PacketBuilder::createPacket(PacketNumberSpace pnSpace, bool skipPack
             header = createOneRttHeader();
             break;
     }
-    QuicPacket *packet = new QuicPacket(packetName.str());;
+    QuicPacket *packet = new QuicPacket(packetName.str());
     packet->setHeader(header);
 
     return packet;
