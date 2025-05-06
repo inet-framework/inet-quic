@@ -53,7 +53,7 @@ void PacketBuilder::fillLongHeader(Ptr<LongPacketHeader> packetHeader)
     packetHeader->setSrcConnectionId(srcConnectionId->getId());
     if (dstConnectionId == nullptr) {
         packetHeader->setDstConnectionIdLength(8);
-        packetHeader->setDstConnectionId(0x1122334455667788);
+        packetHeader->setDstConnectionId(0x1122334455667788); // TODO: should be random
     } else {
         packetHeader->setDstConnectionIdLength(dstConnectionId->getLength());
         packetHeader->setDstConnectionId(dstConnectionId->getId());
