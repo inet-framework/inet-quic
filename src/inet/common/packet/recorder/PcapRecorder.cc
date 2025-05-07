@@ -109,9 +109,6 @@ void PcapRecorder::initialize()
         }
         else {
             tlsSecretsSignal = registerSignal(tlsSignalName);
-            if (dynamic_cast<PcapngWriter*>(pcapWriter) == nullptr && *(par("pcapFile").stdstringValue().c_str()) != '\0') {
-                EV_WARN << "TLS secrets recording is enabled, but fileFormat is not 'pcapng'. Secrets will not be written to classic pcap files." << EV_ENDL;
-            }
             // Subscribe to the TLS secrets signal on the parent module (host)
             // Assumes the signal is emitted by the host or one of its direct submodules.
             if (getParentModule()) {
@@ -192,10 +189,9 @@ std::string PcapRecorder::resolveDirective(char directive) const
 
 void PcapRecorder::receiveSignal(cComponent *source, simsignal_t signalID, const char *s, cObject *details)
 {
-    if (recordTlsSecrets && signalID == tlsSecretsSignal) {
-        EV_INFO << "Recording TLS Key Log Line from signal " << getSignalName(signalID) << EV_FIELD(source, source->getFullPath()) << EV_ENDL;
+        EV_INFO << "Recording TLS Key Log Line from signal " << EV_ENDL;
         pcapWriter->writeTlsKeyLogEntry(s);
-    }
+
 }
 void PcapRecorder::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {

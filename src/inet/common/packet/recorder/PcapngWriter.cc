@@ -68,14 +68,12 @@ struct pcapng_packet_block_trailer
     uint32_t blockTotalLength;
 };
 
-// Decryption Secrets Block (DSB) Type
-#define DSB_BLOCK_TYPE 0x00000BAD
 // Secrets Type for TLS Key Log ('TLSK')
 #define TLS_KEY_LOG_SECRETS_TYPE 0x544c534B
 
 struct pcapng_dsb_header // Decryption Secret Block
 {
-    uint32_t blockType = DSB_BLOCK_TYPE;
+    uint32_t blockType = 0x0000000A;
     uint32_t blockTotalLength;
     uint32_t secretsType;
     uint32_t secretsLength; // Length of Secrets Data
@@ -320,8 +318,10 @@ void PcapngWriter::writeTlsKeyLogEntry(const char *logLine)
     uint32_t endOfOptions = 0; // opt_endofopt
     fwrite(&endOfOptions, sizeof(endOfOptions), 1, dumpfile);
 
-    // Write DSB Trailer (Block Total Length repeated)
-    fwrite(&dsbh.blockTotalLength, sizeof(dsbh.blockTotalLength), 1, dumpfile);
+    // trailer
+    struct pcapng_section_block_trailer sbt;
+    sbt.blockTotalLength = dsbh.blockTotalLength;
+    fwrite(&sbt, sizeof(sbt), 1, dumpfile);
 
     if (flush)
         fflush(dumpfile);

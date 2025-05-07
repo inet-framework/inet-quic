@@ -142,6 +142,7 @@ void PcapWriter::writePacket(simtime_t stime, const Packet *packet, b frontOffse
 
 void PcapWriter::writeTlsKeyLogEntry(const char *logLine)
 {
+    EV_WARN << "PcapWriter: TLS key log entry not supported in classic PCAP format. Ignoring entry: " << logLine << EV_ENDL;
     // Classic PCAP format does not support TLS key log entries.
     // This function is a no-op for PcapWriter.
     // Optionally, a warning could be logged here if attempted.
