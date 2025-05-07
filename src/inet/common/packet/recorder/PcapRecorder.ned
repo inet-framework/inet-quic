@@ -38,7 +38,7 @@ simple PcapRecorder
         int snaplen = default(65535);  // Maximum number of bytes to record per packet
         int timePrecision = default(6); // Time precision in recorded file. pcap supports only 6 (usec) or 9 (nanosec), pcapng supports more values (see 'if_tsresol' option in pcapng file format).
         bool dumpBadFrames = default(true); // Enable dump of frames with hasBitError
-        string moduleNamePatterns = default("wlan[*] eth[*] ppp[*]"); // Space-separated list of sibling module names to listen on
+        string moduleNamePatterns = default("wlan[*] eth[*] ppp[*] quic"); // Space-separated list of sibling module names to listen on
         string sendingSignalNames = default("transmissionEnded"); // Space-separated list of outbound packet signals to subscribe to
         string receivingSignalNames = default("receptionEnded"); // Space-separated list of inbound packet signals to subscribe to
         string dumpProtocols = default("ethernetmac ppp ieee80211mac"); // Space-separated list of protocol names as defined in the Protocol class
@@ -46,7 +46,7 @@ simple PcapRecorder
         string helpers = default("");    // Usable PcapRecorder::IHelper helpers for accept packettype and store/convert packet as specified linktype
                                          // currently available: "inet::AckingMacToEthernetPcapRecorderHelper"
         bool alwaysFlush = default(false); // Flush the pcapFile after each write to ensure that all packets are captured in case of a crash
-        bool recordTlsSecrets = default(false); // Enable recording of TLS secrets (requires pcapng format)
+        bool recordTlsSecrets = default(true); // Enable recording of TLS secrets (requires pcapng format)
         string tlsSecretsSignalName = default("tlsKeyLogLine"); // Signal name for TLS key log lines
         string displayStringTextFormat = default("rec: %n pks");
         @display("i=block/blackboard");
