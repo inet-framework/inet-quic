@@ -93,14 +93,7 @@ Connection::Connection(Quic *quicSimpleMod, UdpSocket *udpSocket, AppSocket *app
     reliabilityManager = new ReliabilityManager(this, remoteTransportParameters, receivedPacketsAccountants[PacketNumberSpace::ApplicationData], congestionController, stats);
 
 
-    ptls_context_t ctx;
-    memset(&ctx, 0, sizeof(ctx));
-    ctx.random_bytes = ptls_openssl_random_bytes;
-    ctx.key_exchanges = ptls_openssl_key_exchanges;
-    ctx.cipher_suites = ptls_openssl_cipher_suites;
-    ctx.get_time = &ptls_get_time;
-
-    tls = ptls_new(&ctx, 0);
+    tls = ptls_new(&quicSimpleMod->ctx, 0);
 }
 
 Connection::~Connection() {
