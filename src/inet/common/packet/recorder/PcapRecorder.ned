@@ -46,6 +46,8 @@ simple PcapRecorder
         string helpers = default("");    // Usable PcapRecorder::IHelper helpers for accept packettype and store/convert packet as specified linktype
                                          // currently available: "inet::AckingMacToEthernetPcapRecorderHelper"
         bool alwaysFlush = default(false); // Flush the pcapFile after each write to ensure that all packets are captured in case of a crash
+        bool recordTlsSecrets = default(false); // Enable recording of TLS secrets (requires pcapng format)
+        string tlsSecretsSignalName = default("tlsKeyLogLine"); // Signal name for TLS key log lines
         string displayStringTextFormat = default("rec: %n pks");
         @display("i=block/blackboard");
         @signal[packetRecorded](type=Packet);
