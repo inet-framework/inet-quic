@@ -52,6 +52,8 @@ simple PcapRecorder extends SimpleModule
                                          // currently available: "inet::AckingMacToEthernetPcapRecorderHelper"
         bool alwaysFlush = default(false); // Flush the pcapFile after each write to ensure that all packets are captured in case of a crash
         displayStringTextFormat = default("rec: %n pks");
+        bool recordTlsSecrets = default(false); // Enable recording of TLS secrets (requires pcapng format)
+        string tlsSecretsSignalName = default("tlsKeyLogLine"); // Signal name for TLS key log lines
         @display("i=block/blackboard");
         @signal[packetRecorded](type=Packet);
 }

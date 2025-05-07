@@ -100,6 +100,27 @@ void PcapRecorder::initialize()
             helpers.push_back(check_and_cast<IHelper *>(createOne(protocolTokenizer.nextToken())));
     }
 
+    recordTlsSecrets = par("recordTlsSecrets");
+    if (recordTlsSecrets) {
+        const char *tlsSignalName = par("tlsSecretsSignalName");
+        if (opp_isempty(tlsSignalName)) {
+            EV_WARN << "recordTlsSecrets is true, but tlsSecretsSignalName is empty. TLS secrets will not be recorded." << EV_ENDL;
+            recordTlsSecrets = false;
+        }
+        else {
+            tlsSecretsSignal = registerSignal(tlsSignalName);
+            if (dynamic_cast<PcapngWriter*>(pcapWriter) == nullptr && *(par("pcapFile").stdstringValue().c_str()) != '\0') {
+                EV_WARN << "TLS secrets recording is enabled, but fileFormat is not 'pcapng'. Secrets will not be written to classic pcap files." << EV_ENDL;
+            }
+            // Subscribe to the TLS secrets signal on the parent module (host)
+            // Assumes the signal is emitted by the host or one of its direct submodules.
+            if (getParentModule()) {
+                getParentModule()->subscribe(tlsSecretsSignal, this);
+                EV_INFO << "Subscribing to " << getParentModule()->getFullPath() << ":" << getSignalName(tlsSecretsSignal) << " for TLS secrets" << EV_ENDL;
+            }
+        }
+    }
+
     const char *moduleNames = par("moduleNamePatterns");
     cStringTokenizer moduleTokenizer(moduleNames);
 
@@ -169,6 +190,13 @@ std::string PcapRecorder::resolveDirective(char directive) const
     }
 }
 
+void PcapRecorder::receiveSignal(cComponent *source, simsignal_t signalID, const char *s, cObject *details)
+{
+    if (recordTlsSecrets && signalID == tlsSecretsSignal) {
+        EV_INFO << "Recording TLS Key Log Line from signal " << getSignalName(signalID) << EV_FIELD(source, source->getFullPath()) << EV_ENDL;
+        pcapWriter->writeTlsKeyLogEntry(s);
+    }
+}
 void PcapRecorder::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
     Enter_Method("%s", cComponent::getSignalName(signalID));
