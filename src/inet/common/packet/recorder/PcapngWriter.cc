@@ -68,6 +68,21 @@ struct pcapng_packet_block_trailer
     uint32_t blockTotalLength;
 };
 
+// Decryption Secrets Block (DSB) Type
+#define DSB_BLOCK_TYPE 0x00000BAD
+// Secrets Type for TLS Key Log ('TLSK')
+#define TLS_KEY_LOG_SECRETS_TYPE 0x544c534B
+
+struct pcapng_dsb_header // Decryption Secret Block
+{
+    uint32_t blockType = DSB_BLOCK_TYPE;
+    uint32_t blockTotalLength;
+    uint32_t secretsType;
+    uint32_t secretsLength; // Length of Secrets Data
+};
+
+// Note: pcapng_dsb_trailer is just a uint32_t blockTotalLength, similar to other blocks.
+
 static int pad(int value, int multiplier = 4)
 {
     return (multiplier - value % multiplier) % multiplier;
@@ -270,6 +285,43 @@ void PcapngWriter::writePacket(simtime_t stime, const Packet *packet, b frontOff
     struct pcapng_packet_block_trailer pbt;
     pbt.blockTotalLength = blockTotalLength;
     fwrite(&pbt, sizeof(pbt), 1, dumpfile);
+
+    if (flush)
+        fflush(dumpfile);
+}
+
+void PcapngWriter::writeTlsKeyLogEntry(const char *logLine)
+{
+    EV_INFO << "Writing TLS Key Log entry to file" << EV_FIELD(fileName) << EV_ENDL;
+    if (!dumpfile)
+        throw cRuntimeError("Cannot write TLS Key Log entry: pcapng output file is not open");
+
+    size_t secretsDataLength = strlen(logLine);
+    size_t paddedSecretsDataLength = roundUp(secretsDataLength);
+    uint32_t optionsLength = sizeof(uint32_t); // For End of Options
+
+    struct pcapng_dsb_header dsbh;
+    dsbh.secretsType = TLS_KEY_LOG_SECRETS_TYPE;
+    dsbh.secretsLength = secretsDataLength;
+    dsbh.blockTotalLength = sizeof(pcapng_dsb_header) + paddedSecretsDataLength + optionsLength + sizeof(uint32_t) /* trailer: blockTotalLength */;
+
+    // Write DSB Header
+    fwrite(&dsbh, sizeof(dsbh), 1, dumpfile);
+
+    // Write Secrets Data
+    fwrite(logLine, secretsDataLength, 1, dumpfile);
+
+    // Write Padding for Secrets Data
+    char padding[] = { 0, 0, 0, 0 };
+    int paddingLength = pad(secretsDataLength);
+    fwrite(padding, paddingLength, 1, dumpfile);
+
+    // Write End of Options
+    uint32_t endOfOptions = 0; // opt_endofopt
+    fwrite(&endOfOptions, sizeof(endOfOptions), 1, dumpfile);
+
+    // Write DSB Trailer (Block Total Length repeated)
+    fwrite(&dsbh.blockTotalLength, sizeof(dsbh.blockTotalLength), 1, dumpfile);
 
     if (flush)
         fflush(dumpfile);

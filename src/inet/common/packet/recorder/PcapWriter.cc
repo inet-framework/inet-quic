@@ -140,6 +140,13 @@ void PcapWriter::writePacket(simtime_t stime, const Packet *packet, b frontOffse
         fflush(dumpfile);
 }
 
+void PcapWriter::writeTlsKeyLogEntry(const char *logLine)
+{
+    // Classic PCAP format does not support TLS key log entries.
+    // This function is a no-op for PcapWriter.
+    // Optionally, a warning could be logged here if attempted.
+}
+
 void PcapWriter::close()
 {
     if (dumpfile) {
