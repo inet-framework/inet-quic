@@ -27,6 +27,11 @@
 #include "congestioncontrol/CongestionControlFactory.h"
 #include "PmtuValidator.h"
 
+extern "C" {
+#include "picotls.h"
+#include "picotls/openssl.h"
+}
+
 namespace inet {
 namespace quic {
 
@@ -94,6 +99,45 @@ Connection::Connection(Quic *quicSimpleMod, UdpSocket *udpSocket, AppSocket *app
 
 
     tls = ptls_new(&quicSimpleMod->ctx, 0);
+    *ptls_get_data_ptr(tls) = this;
+
+
+    ptls_iovec_t client_random = ptls_get_client_random(tls);
+    char client_random_hex[65];
+
+    ptls_hexdump(client_random_hex, client_random.base, client_random.len);
+
+    std::cout << "client random: " << client_random_hex << std::endl;
+
+    std::cout << "quic emits secret" << std::endl;
+    std::string tlsClientRandomLine = "CLIENT_RANDOM ";
+    tlsClientRandomLine += client_random_hex;
+    tlsClientRandomLine += " ";
+    tlsClientRandomLine += client_random_hex;
+    tlsClientRandomLine += "\n";
+
+    quicSimpleMod->emit(quicSimpleMod->tlsKeyLogLineSignal, tlsClientRandomLine.c_str());
+    std::cout << "quic emitted: " << tlsClientRandomLine.c_str() << std::endl;
+/*
+    uint8_t key[PTLS_MAX_SECRET_SIZE];
+    uint8_t iv[PTLS_MAX_IV_SIZE];
+    uint64_t seq;
+
+    ptls_get_traffic_keys(tls, 1, key, iv, &seq);
+
+    std::cout << "key: ";
+    for (int i = 0; i < sizeof(key); i++)
+        std::cout << std::hex << (int)key[i] << " ";
+
+    std::cout << std::dec << std::endl;
+    std::cout << "iv: ";
+    for (int i = 0; i < sizeof(iv); i++)
+        std::cout << std::hex << (int)iv[i] << " ";
+
+    std::cout << std::dec << std::endl;
+    std::cout << "seq: " << std::hex << seq << std::dec << std::endl;
+*/
+
 }
 
 Connection::~Connection() {
@@ -367,7 +411,7 @@ void Connection::sendHandshakePacket(bool includeTransportParamters) {
 void Connection::sendPacket(QuicPacket *packet, PacketNumberSpace pnSpace, bool track)
 {
     stats->getMod()->emit(packetNumberSentStat, packet->getPacketNumber());
-    Packet *pkt = packet->createOmnetPacket();
+    Packet *pkt = packet->createOmnetPacket("88ad8d3b0986a71965a28d108b0f40ffffe629284a6028c80ddc5dc083b3f5d1"); // TODO: actual secret
     stats->getMod()->emit(packetSentSignal, pkt);
     udpSocket->sendto(path->getRemoteAddr(), path->getRemotePort(), pkt);
     if (track) {
