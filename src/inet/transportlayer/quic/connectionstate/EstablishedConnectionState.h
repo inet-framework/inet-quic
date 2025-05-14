@@ -31,6 +31,7 @@ public:
     virtual void processDataBlockedFrame(const Ptr<const DataBlockedFrameHeader>& frameHeader) override;
     virtual void processCryptoFrame(const Ptr<const CryptoFrameHeader>& frameHeader, Packet *pkt) override;
     virtual void processHandshakeDoneFrame() override;
+    virtual void processNewTokenFrame(const Ptr<const NewTokenFrameHeader>& frameHeader) override;
     virtual void processConnectionCloseFrame() override;
     virtual ConnectionState *processLossDetectionTimeout(cMessage *msg) override;
     virtual ConnectionState *processAckDelayTimeout(cMessage *msg) override;

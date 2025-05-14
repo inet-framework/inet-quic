@@ -63,7 +63,7 @@ class InitialPacketHeader extends LongPacketHeader
     longPacketType = LONG_PACKET_HEADER_TYPE_INITIAL;
     uint8_t packetNumberLength;
     VariableLengthInteger tokenLength;
-    uint64_t token;
+    uint32_t token;
     VariableLengthInteger length;
     uint64_t packetNumber;
     // payload

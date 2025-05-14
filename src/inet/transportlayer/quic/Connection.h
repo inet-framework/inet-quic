@@ -126,6 +126,7 @@ class Connection
     void sendAck(PacketNumberSpace pnSpace);
     void established();
     void sendHandshakeDone();
+    void enqueueZeroRttTokenFrame();
     void close(bool sendAck, bool appInitiated);
     void sendConnectionClose(bool sendAck, bool appInitiated, int errorCode);
     bool belongsPacketTo(Packet *pkt, uint64_t dstConnectionId);

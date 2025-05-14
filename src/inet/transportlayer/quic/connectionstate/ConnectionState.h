@@ -54,6 +54,7 @@ public:
     virtual void processDataBlockedFrame(const Ptr<const DataBlockedFrameHeader>& frameHeader);
     virtual void processCryptoFrame(const Ptr<const CryptoFrameHeader>& frameHeader, Packet *pkt);
     virtual void processHandshakeDoneFrame();
+    virtual void processNewTokenFrame(const Ptr<const NewTokenFrameHeader>& frameHeader);
     virtual void processConnectionCloseFrame();
 
     virtual ConnectionState *processIcmpPtb(Packet *droppedPacket, int ptbMtu);

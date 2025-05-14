@@ -193,6 +193,8 @@ void ConnectionState::processFrame(Packet *pkt, PacketNumberSpace pnSpace)
             return processCryptoFrame(staticPtrCast<const CryptoFrameHeader>(frameHeader), pkt);
         case FRAME_HEADER_TYPE_HANDSHAKE_DONE:
             return processHandshakeDoneFrame();
+        case FRAME_HEADER_TYPE_NEW_TOKEN:
+            return processNewTokenFrame(staticPtrCast<const NewTokenFrameHeader>(frameHeader));
         case FRAME_HEADER_TYPE_CONNECTION_CLOSE_APP:
         case FRAME_HEADER_TYPE_CONNECTION_CLOSE_QUIC:
             return processConnectionCloseFrame();
@@ -243,6 +245,11 @@ void ConnectionState::processCryptoFrame(const Ptr<const CryptoFrameHeader>& fra
 void ConnectionState::processHandshakeDoneFrame()
 {
     throw cRuntimeError("HANDSHAKE_DONE frame unexpected in the current state");
+}
+
+void ConnectionState::processNewTokenFrame(const Ptr<const NewTokenFrameHeader>& frameHeader)
+{
+    throw cRuntimeError("NEW_TOKEN frame unexpected in the current state");
 }
 
 void ConnectionState::processConnectionCloseFrame()

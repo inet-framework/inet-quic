@@ -118,6 +118,12 @@ void EstablishedConnectionState::processHandshakeDoneFrame()
     context->setHandshakeConfirmed(true);
 }
 
+void EstablishedConnectionState::processNewTokenFrame(const Ptr<const NewTokenFrameHeader>& frameHeader)
+{
+    EV_DEBUG << "NewTokenFrameHeader in " << name << endl;
+
+}
+
 void EstablishedConnectionState::processConnectionCloseFrame()
 {
     EV_DEBUG << "processConnectionCloseFrame in " << name << endl;
@@ -177,6 +183,10 @@ ConnectionState *EstablishedConnectionState::processHandshakePacket(const Ptr<co
     context->sendAck(PacketNumberSpace::Handshake);
     if (gotCryptoFin) {
         gotCryptoFin = false;
+
+        // enqueue a 0-RTT Token Frame for sending if the parameter is true
+        context->enqueueZeroRttTokenFrame();
+
         context->setHandshakeConfirmed(true);
         context->sendHandshakeDone();
     }

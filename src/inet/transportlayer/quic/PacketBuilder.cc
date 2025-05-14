@@ -183,6 +183,14 @@ QuicFrame *PacketBuilder::createHandshakeDoneFrame()
     return new QuicFrame(frameHeader);
 }
 
+QuicFrame *PacketBuilder::createNewTokenFrame(uint32_t token)
+{
+    Ptr<NewTokenFrameHeader> frameHeader = makeShared<NewTokenFrameHeader>();
+    frameHeader->setToken(token);
+    frameHeader->calcChunkLength();
+    return new QuicFrame(frameHeader);
+}
+
 QuicPacket *PacketBuilder::addFramesFromControlQueue(QuicPacket *packet, int maxPacketSize)
 {
     while (!controlQueue->empty()) {
@@ -463,6 +471,11 @@ QuicPacket *PacketBuilder::buildHandshakePacket(int maxPacketSize, TransportPara
 void PacketBuilder::addHandshakeDone()
 {
     controlQueue->push_back(createHandshakeDoneFrame());
+}
+
+void PacketBuilder::addNewTokenFrame(uint32_t token)
+{
+    controlQueue->push_back(createNewTokenFrame(token));
 }
 
 QuicPacket *PacketBuilder::buildConnectionClosePacket(int maxPacketSize, bool sendAck, bool appInitiated, int errorCode)

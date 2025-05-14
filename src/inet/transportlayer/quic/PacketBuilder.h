@@ -80,6 +80,7 @@ public:
     QuicPacket *buildHandshakePacket(int maxPacketSize, TransportParameters *tp);
     QuicPacket *buildConnectionClosePacket(int maxPacketSize, bool sendAck, bool appInitiated, int errorCode);
     void addHandshakeDone();
+    void addNewTokenFrame(uint32_t token);
     void setSrcConnectionId(ConnectionId *connectionId) {
         this->srcConnectionId = connectionId;
     }
@@ -111,6 +112,7 @@ private:
     QuicFrame *createCryptoFrame(TransportParameters *tp = nullptr);
     void fillLongHeader(Ptr<LongPacketHeader> packetHeader);
     QuicFrame *createHandshakeDoneFrame();
+    QuicFrame *createNewTokenFrame(uint32_t token);
     QuicFrame *createConnectionCloseFrame(bool appInitiated, int errorCode);
 };
 

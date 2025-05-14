@@ -602,5 +602,13 @@ bool Connection::belongsPacketTo(Packet *pkt, uint64_t dstConnectionId)
     return true;
 }
 
+void Connection::enqueueZeroRttTokenFrame()
+{
+    if (quicSimpleMod->par("sendZeroRttTokenAsServer")) {
+        uint32_t token = quicSimpleMod->intrand(UINT32_MAX);
+        packetBuilder->addNewTokenFrame(token);
+    }
+}
+
 } /* namespace quic */
 } /* namespace inet */
