@@ -69,7 +69,7 @@ void QuicPacket::addFrame(QuicFrame *frame)
 {
     frames.push_back(frame);
     size += frame->getSize();
-    dataSize += frame->getDataSize();
+    dataSize += frame->getSize();
     if (frame->isAckEliciting()) {
         ackEliciting = true;
     }

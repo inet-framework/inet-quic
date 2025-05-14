@@ -70,7 +70,6 @@ Ptr<InitialPacketHeader> PacketBuilder::createInitialHeader()
     packetHeader->setPacketNumber(packetNumber[PacketNumberSpace::Initial]++);
     packetHeader->setTokenLength(0);
     packetHeader->setToken(0);
-    packetHeader->setLength(1);
     packetHeader->calcChunkLength();
 
     return packetHeader;
@@ -503,6 +502,10 @@ QuicPacket *PacketBuilder::buildClientInitialPacket(int maxPacketSize, Transport
     QuicPacket *packet = createPacket(PacketNumberSpace::Initial, false);
 
     packet->addFrame(createCryptoFrame(tp));
+    Ptr<InitialPacketHeader> initialHeader = staticPtrCast<InitialPacketHeader>(packet->getHeader());
+    initialHeader->setLength(initialHeader->getPacketNumberLength() + packet->getDataSize() + 16);
+    initialHeader->calcChunkLength();
+
     packet->addFrame(createPaddingFrame(1200 - packet->getSize()));
 
     return packet;
