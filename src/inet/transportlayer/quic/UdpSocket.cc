@@ -126,5 +126,28 @@ void UdpSocket::destroy()
     socket.destroy();
 }
 
+void UdpSocket::saveToken(uint32_t token, L3Address remoteAddr)
+{
+    EV_DEBUG << "UdpSocket::saveToken(" << token << ", " << remoteAddr << ")" << endl;
+    auto result = tokenRemoteIpMap.insert({ token, remoteAddr });
+    if (result.second == false) {
+        EV_INFO << "UdpSocket::saveToken: The given token is already in the map." << endl;
+        if (result.first->second != remoteAddr) {
+            throw cRuntimeError("UdpSocket::saveToken: Got the same token for another remoteAddr.");
+        }
+    }
+}
+
+bool UdpSocket::doesTokenExist(uint32_t token, L3Address remoteAddr)
+{
+    auto it = tokenRemoteIpMap.find(token);
+    if (it != tokenRemoteIpMap.end() && it->second == remoteAddr) {
+        tokenRemoteIpMap.erase(token);
+        return true;
+    }
+    EV_DEBUG << "UdpSocket::doesTokenExist: token " << token << " not found or address " << remoteAddr << " does not match" << endl;
+    return false;
+}
+
 } /* namespace quic */
 } /* namespace inet */

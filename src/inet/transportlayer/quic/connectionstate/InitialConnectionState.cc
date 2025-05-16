@@ -23,6 +23,21 @@ ConnectionState *InitialConnectionState::processConnectAppCommand(cMessage *msg)
     return new InitialSentConnectionState(context);
 }
 
+ConnectionState *InitialConnectionState::processConnectAndSendAppCommand(cMessage *msg)
+{
+    Packet *pkt = check_and_cast<Packet *>(msg);
+    const char *clientToken = pkt->getTag<QuicNewToken>()->getToken();
+    uint32_t token = context->processClientTokenExtractToken(clientToken);
+
+    // send client hello
+    context->sendClientInitialPacket(token);
+
+    auto streamId = pkt->getTag<QuicStreamReq>()->getStreamID();
+    context->newStreamData(streamId, pkt->peekData());
+
+    return new InitialSentConnectionState(context);
+}
+
 void InitialConnectionState::processCryptoFrame(const Ptr<const CryptoFrameHeader>& frameHeader, Packet *pkt)
 {
     if (frameHeader->getContainsTransportParameters()) {
@@ -41,6 +56,13 @@ ConnectionState *InitialConnectionState::processInitialPacket(const Ptr<const In
     context->addDstConnectionId(packetHeader->getSrcConnectionId(), packetHeader->getSrcConnectionIdLength());
     context->accountReceivedPacket(packetHeader->getPacketNumber(), ackElicitingPacket, PacketNumberSpace::Initial, false);
 
+    if (packetHeader->getTokenLength() > 0) {
+        uint32_t token = packetHeader->getToken();
+        if (context->getUdpSocket()->doesTokenExist(token, context->getPath()->getRemoteAddr())) {
+            EV_DEBUG << "InitialConnectionState::processInitialPacket: Found contained token, address validated" << endl;
+            context->addConnectionForInitialConnectionId(packetHeader->getDstConnectionId());
+        }
+    }
     // send server hello
     context->sendServerInitialPacket();
 

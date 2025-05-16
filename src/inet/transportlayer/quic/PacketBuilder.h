@@ -73,9 +73,10 @@ public:
      */
     QuicPacket *buildAckElicitingPacket(std::vector<QuicPacket*> *sentPackets, int maxPacketSize, bool skipPacketNumber=false);
 
+    QuicPacket *buildZeroRttPacket(int maxPacketSize);
     QuicPacket *buildPingPacket();
     QuicPacket *buildDplpmtudProbePacket(int packetSize, Dplpmtud *dplpmtud);
-    QuicPacket *buildClientInitialPacket(int maxPacketSize, TransportParameters *tp);
+    QuicPacket *buildClientInitialPacket(int maxPacketSize, TransportParameters *tp, uint32_t token);
     QuicPacket *buildServerInitialPacket(int maxPacketSize);
     QuicPacket *buildHandshakePacket(int maxPacketSize, TransportParameters *tp);
     QuicPacket *buildConnectionClosePacket(int maxPacketSize, bool sendAck, bool appInitiated, int errorCode);
@@ -99,11 +100,13 @@ private:
     bool bundleAckForNonAckElicitingPackets;
     bool skipPacketNumberForDplpmtudProbePackets;
 
-    QuicPacket *createPacket(PacketNumberSpace pnSpace, bool skipPacketNumber);
+    QuicPacket *createPacket(PacketNumberSpace pnSpace, bool skipPacketNumber, bool zeroRtt = false);
     Ptr<InitialPacketHeader> createInitialHeader();
     Ptr<HandshakePacketHeader> createHandshakeHeader();
     QuicPacket *createOneRttPacket(bool skipPacketNumber=false);
-    Ptr<ShortPacketHeader> createOneRttHeader();
+    QuicPacket *createZeroRttPacket();
+    Ptr<OneRttPacketHeader> createOneRttHeader();
+    Ptr<ZeroRttPacketHeader> createZeroRttHeader();
     QuicPacket *addFramesFromControlQueue(QuicPacket *packet, int maxPacketSize);
     QuicPacket *addFrameToPacket(QuicPacket *packet, QuicFrame *frame, bool skipPacketNumber=false);
     size_t getPacketSize(QuicPacket *packet);

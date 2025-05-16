@@ -46,6 +46,7 @@ enum QuicStatusInd
     QUIC_I_SENDQUEUE_FULL = 8;
     QUIC_I_SENDQUEUE_DRAIN = 9;
     QUIC_I_MSG_REJECTED = 10;
+    QUIC_I_NEW_TOKEN = 11;
 }
 
 //
@@ -62,7 +63,7 @@ class QuicStreamReq extends TagBase
 //
 // @see ~QuicCommandCode
 //
-class QuicCommand extends cObject
+class QuicCommand extends TagBase
 {
 }
 
@@ -146,4 +147,9 @@ class QuicConnectionInfo extends QuicCommand
     L3Address remoteAddr;
     uint16_t localPort;
     uint16_t remotePort;
+}
+
+class QuicNewToken extends QuicCommand
+{
+    string token;
 }

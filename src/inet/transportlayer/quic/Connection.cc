@@ -248,7 +248,13 @@ void Connection::sendPackets()
             packet = packetBuilder->buildDplpmtudProbePacket(dplpmtud->getProbeSize(), dplpmtud);
             dplpmtud->probePacketBuilt();
         } else if(sendDataDuringInitalDplpmtudBase || !dplpmutdInIntialBase) {
-            packet = packetBuilder->buildPacket(maxQuicPacketSize, path->getSafeQuicPacketSize());
+            if (dynamic_cast<EstablishedConnectionState *>(connectionState) != nullptr) {
+                // Connection established, build 1-RTT packet.
+                packet = packetBuilder->buildPacket(maxQuicPacketSize, path->getSafeQuicPacketSize());
+            } else {
+                // Connection not yet established, build 0-RTT packet.
+                packet = packetBuilder->buildZeroRttPacket(maxQuicPacketSize);
+            }
             if (packet != nullptr // packet was created
                     && packet->isAckEliciting() // it is ack eliciting an therefore not bound by safeQuicPacketSize
                     && maxQuicPacketSize != lastMaxQuicPacketSize) {
@@ -337,9 +343,9 @@ void Connection::sendProbePacket(uint ptoCount)
     sendPacket(packet, PacketNumberSpace::ApplicationData);
 }
 
-void Connection::sendClientInitialPacket() {
+void Connection::sendClientInitialPacket(uint32_t token) {
     int maxQuicPacketSize = path->getMaxQuicPacketSize();
-    sendPacket(packetBuilder->buildClientInitialPacket(maxQuicPacketSize, localTransportParameters), PacketNumberSpace::Initial);
+    sendPacket(packetBuilder->buildClientInitialPacket(maxQuicPacketSize, localTransportParameters, token), PacketNumberSpace::Initial);
 }
 
 void Connection::sendServerInitialPacket() {
@@ -511,8 +517,12 @@ void Connection::sendAck(PacketNumberSpace pnSpace)
 void Connection::established()
 {
     // we should have gotten the peer's transport parameters by now, which allows to read their values.
-    connectionFlowController = new ConnectionFlowController(remoteTransportParameters->initialMaxData, stats);
-    connectionFlowControlResponder = new ConnectionFlowControlResponder(this, remoteTransportParameters->initialMaxData, maxDataFrameThreshold, roundConsumedDataValue, stats);
+    if (connectionFlowController == nullptr) {
+        connectionFlowController = new ConnectionFlowController(remoteTransportParameters->initialMaxData, stats);
+    }
+    if (connectionFlowControlResponder == nullptr) {
+        connectionFlowControlResponder = new ConnectionFlowControlResponder(this, remoteTransportParameters->initialMaxData, maxDataFrameThreshold, roundConsumedDataValue, stats);
+    }
 
     appSocket->sendEstablished();
 
@@ -607,6 +617,54 @@ void Connection::enqueueZeroRttTokenFrame()
     if (quicSimpleMod->par("sendZeroRttTokenAsServer")) {
         uint32_t token = quicSimpleMod->intrand(UINT32_MAX);
         packetBuilder->addNewTokenFrame(token);
+        udpSocket->saveToken(token, path->getRemoteAddr());
+    }
+}
+
+void Connection::buildClientTokenAndSendToApp(uint32_t token)
+{
+    std::ostringstream clientToken;
+    clientToken << token
+                << "_"
+                << remoteTransportParameters->initialMaxData
+                << "_"
+                << remoteTransportParameters->initialMaxStreamData;
+
+    appSocket->sendToken(clientToken.str());
+}
+
+uint32_t Connection::processClientTokenExtractToken(const char *clientToken)
+{
+    std::stringstream clientTokenStream;
+    char underscore;
+    uint32_t token;
+
+    clientTokenStream << clientToken;
+
+    clientTokenStream >> token;
+    clientTokenStream >> underscore;
+    clientTokenStream >> remoteTransportParameters->initialMaxData;
+    clientTokenStream >> underscore;
+    clientTokenStream >> remoteTransportParameters->initialMaxStreamData;
+
+    connectionFlowController = new ConnectionFlowController(remoteTransportParameters->initialMaxData, stats);
+    connectionFlowControlResponder = new ConnectionFlowControlResponder(this, remoteTransportParameters->initialMaxData, maxDataFrameThreshold, roundConsumedDataValue, stats);
+
+    return token;
+}
+
+void Connection::addConnectionForInitialConnectionId(uint64_t initialConnectionId)
+{
+    this->initialConnectionIdSet = true;
+    this->initialConnectionId = initialConnectionId;
+    quicSimpleMod->addConnection(initialConnectionId, this);
+}
+
+void Connection::removeConnectionForInitialConnectionId()
+{
+    if (this->initialConnectionIdSet) {
+        this->initialConnectionIdSet = false;
+        quicSimpleMod->removeConnectionId(this->initialConnectionId);
     }
 }
 
