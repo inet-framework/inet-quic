@@ -81,6 +81,11 @@ class Connection
     bool is_server;
     ptls_t *tls;
 
+    // provided by the TLS handshake, and changing based on the epoch, used to derive all further IVs and keys
+    // TODO: maybe better in ConnectionState?
+    std::string ingressSecret;
+    std::string egressSecret;
+
     /**
      * Enqueues data in the corresponding stream queue and triggers packet sending.
      * Called upon a send command from app.
@@ -245,11 +250,6 @@ class Connection
     bool dplpmutdInIntialBase;
 
     bool handshakeConfirmed = false;
-
-    // provided by the TLS handshake, and changing based on the epoch, used to derive all further IVs and keys
-    // TODO: maybe better in ConnectionState?
-    std::string ingressSecret;
-    std::string egressSecret;
 
     Statistics *stats;
 
