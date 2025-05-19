@@ -25,6 +25,7 @@ enum QuicCommandCode
     QUIC_C_SEND = 5;
     QUIC_C_RECEIVE = 6;
     QUIC_C_ACCEPT = 7;
+    QUIC_C_CONNECT_AND_SEND = 8;
 }
 
 
