@@ -134,6 +134,9 @@ class Connection
     uint32_t processClientTokenExtractToken(const char *clientToken);
     void addConnectionForInitialConnectionId(uint64_t initialConnectionId);
     void removeConnectionForInitialConnectionId();
+    void initializeRemoteTransportParameters(uint64_t maxData, uint64_t maxStreamData);
+    void initializeRemoteTransportParameters(Ptr<const TransportParametersExtension> transportParametersExt);
+
 
     ReliabilityManager *getReliabilityManager() {
         return this->reliabilityManager;
@@ -255,6 +258,8 @@ class Connection
 
     bool initialConnectionIdSet = false;
     uint64_t initialConnectionId = 0;
+
+    bool remoteTransportParametersInitialized = false;
 
     void sendPacket(QuicPacket *packet, PacketNumberSpace pnSpace, bool track = true);
     Stream *findOrCreateStream(uint64_t streamid);

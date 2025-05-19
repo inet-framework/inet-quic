@@ -122,8 +122,21 @@ void QuicZeroRttClient::socketNewToken(QuicSocket *socket, const char *token)
         auto applicationData = makeShared<ByteCountChunk>(B(sendBytes), '#');
         packet->insertAtBack(applicationData);
         uint64_t streamId = 0;
-        //socket2.connectAndSend(connectAddress, connectPort, token, packet, streamId);
-        socket2.connectAndSend(connectAddress, connectPort, "", packet, streamId);
+
+        if (par("invalidClientTokenString")) {
+            socket2.connectAndSend(connectAddress, connectPort, "", packet, streamId);
+        } else if (par("sendInvalidToken")) {
+            char invalidToken[255]; // 255 characters hopefully long enough
+            strcpy(invalidToken, token);
+            if (invalidToken[0] != '0') {
+                invalidToken[0] = '0';
+            } else {
+                invalidToken[0] = '1';
+            }
+            socket2.connectAndSend(connectAddress, connectPort, invalidToken, packet, streamId);
+        } else {
+            socket2.connectAndSend(connectAddress, connectPort, token, packet, streamId);
+        }
     }
 
 }

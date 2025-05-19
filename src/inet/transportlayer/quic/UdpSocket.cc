@@ -37,6 +37,10 @@ void UdpSocket::processPacket(Packet *pkt)
     if (!isListening()) {
         throw cRuntimeError("UdpSocket::processPacket: Unexpected packet");
     }
+    if (dynamicPtrCast<const InitialPacketHeader>(pkt->peekAtFront()) == nullptr) {
+        EV_WARN << "UdpSocket::processPacket: received a packet on a listening socket that is not a QUIC Initial packet. Ignore.";
+        return;
+    }
     auto& tags = pkt->getTags();
     L3Address remoteAddr = tags.getTag<L3AddressInd>()->getSrcAddress();
     uint16_t remotePort = (uint16_t)tags.getTag<L4PortInd>()->getSrcPort();
