@@ -21,6 +21,7 @@
 #include "PacketHeader_m.h"
 #include "QuicFrame.h"
 #include "inet/common/packet/Packet.h"
+#include "EncryptionKeyTag_m.h"
 
 extern "C" {
 #include "picotls.h"
@@ -126,7 +127,7 @@ public:
 
     void setHeader(Ptr<PacketHeader> header);
     void addFrame(QuicFrame *frame);
-    Packet *createOmnetPacket(const char *secret);
+    Packet *createOmnetPacket(const EncryptionKey& key);
     virtual void onPacketLost();
     virtual void onPacketAcked();
 

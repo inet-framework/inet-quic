@@ -78,7 +78,7 @@ void QuicPacket::addFrame(QuicFrame *frame)
     }
 }
 
-Packet *QuicPacket::createOmnetPacket(const char *key)
+Packet *QuicPacket::createOmnetPacket(const EncryptionKey& key)
 {
     Ptr<SequenceChunk> encPayload = makeShared<SequenceChunk>();
     header->markImmutable();
@@ -97,7 +97,7 @@ Packet *QuicPacket::createOmnetPacket(const char *key)
 
     encPayload->markImmutable();
     Ptr<EncryptedQuicPacketChunk> encPkt = makeShared<EncryptedQuicPacketChunk>(encPayload, encPayload->getChunkLength() + B(16));
-    encPkt->addTag<EncryptionKeyTag>()->setKey(key);
+    (*encPkt->addTag<EncryptionKeyTag>()) = *key.toTag();
 
     Packet *pkt = new Packet(name.c_str());
     pkt->insertAtBack(encPkt);
