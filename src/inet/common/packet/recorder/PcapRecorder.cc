@@ -189,9 +189,12 @@ std::string PcapRecorder::resolveDirective(char directive) const
 
 void PcapRecorder::receiveSignal(cComponent *source, simsignal_t signalID, const char *s, cObject *details)
 {
+    Enter_Method("%s", cComponent::getSignalName(signalID));
+
+    if (recordTlsSecrets && signalID == tlsSecretsSignal) {
         EV_INFO << "Recording TLS Key Log Line from signal " << EV_ENDL;
         pcapWriter->writeTlsKeyLogEntry(s);
-
+    }
 }
 void PcapRecorder::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
